@@ -88,14 +88,16 @@ class App extends Component {
   render() {
     //const { searchTerm, list } = this.state;
     return (
-      <div className="App">
-        <h2>mike learns react</h2>
-        <Search 
-          value={this.state.searchTerm}
-          onChange={this.onSearchChange}
-        >
-          Search
-        </Search>
+      <div className="page">
+        <div className="interactions">
+          <h2>mike learns react</h2>
+          <Search 
+            value={this.state.searchTerm}
+            onChange={this.onSearchChange}
+          >
+            Search&nbsp;
+          </Search>
+        </div>
         <Table
           list={list}
           pattern={this.state.searchTerm}
@@ -114,36 +116,11 @@ const Search = ({ searchTerm, onChange, children }) => {
       {children} <input
         type="text"
         value={searchTerm}
-        onChange={this.onSearchChange}
+        onChange={onChange}
       />
       <br /><br />
     </form>
   );
-}
-
-class Table extends Component {
-  render () {
-    const { list, pattern, onDismiss } = this.props;
-    return (
-      <div>
-        {list.filter(isSearched(pattern)).map(item =>
-          <div key={item.objectID}>
-            <span>
-              <a href={item.url}>{item.title}</a>
-            </span>&nbsp;
-            <span>{item.author}</span>&nbsp;
-            <span>{item.num_comments}</span>&nbsp;
-            <span>{item.points}</span>&nbsp;
-            <span>
-              <Button onClick={() => this.onDismiss(item.objectID)} className="bingo">
-                Dismiss
-              </Button>
-            </span>
-          </div>
-        )}
-      </div>
-    )
-  }
 }
 
 class Button extends Component {
@@ -164,6 +141,30 @@ class Button extends Component {
       </button>
     )
   }
+}
+
+const Table = ({ list, pattern, onDismiss }) => {
+  return (
+    <div className="table">
+      {list.filter(isSearched(pattern)).map(item =>
+        <div key={item.objectID} className="table-row">
+          <span style={{width:"40%"}}>
+            <a href={item.url}>{item.title}</a>
+          </span>&nbsp;
+          <span style={{width:"30%"}}>{item.author}</span>&nbsp;
+          <span style={{width:"10%"}}>{item.num_comments}</span>&nbsp;
+          <span style={{width:"10%"}}>{item.points}</span>&nbsp;
+          <span style={{width:"10%"}}>
+            <Button 
+              onClick={() => onDismiss(item.objectID)}
+              className="button-inline">
+              Dismiss
+            </Button>
+          </span>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default App;
