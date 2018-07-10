@@ -67,7 +67,7 @@ class App extends Component {
   onDismiss(id) {
     const isNotID = item => item.objectID !== id;
     const updatedList = this.state.list.filter(isNotID);
-    this.setState({ list: updatedList });
+    this.setState( {list: updatedList} );
   }
 
   /**
@@ -86,13 +86,13 @@ class App extends Component {
   }
 
   render() {
-    //const { searchTerm, list } = this.state;
+    const { searchTerm, list } = this.state;
     return (
       <div className="page">
         <div className="interactions">
           <h2>mike learns react</h2>
           <Search 
-            value={this.state.searchTerm}
+            value={searchTerm}
             onChange={this.onSearchChange}
           >
             Search&nbsp;
@@ -100,7 +100,7 @@ class App extends Component {
         </div>
         <Table
           list={list}
-          pattern={this.state.searchTerm}
+          pattern={searchTerm}
           onDismiss={this.onDismiss}
         />
       </div>
