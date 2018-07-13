@@ -6,39 +6,6 @@ const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
 
-const url = `${PATH_BASE}${PATH_SEARCH}${PARAM_SEARCH}${DEFAULT_QUERY}`;
-
-const list = [
-  {
-    title: 'React',
-    url: 'https://facebook.github.io/react/',
-    author: 'Jordan Walke',
-    num_comments: 3,
-    points: 4,
-    objectID: 0,
-  }, {
-    title: 'Redux',
-    url: 'https://github.com/reactjs/redux',
-    author: 'Dan Abramov, Andrew Clark',
-    num_comments: 2,
-    points: 5,
-    objectID: 1,
-  }, {
-    title: 'Vue',
-    url: 'https://github.com/vuejs/vue',
-    author: 'Evan You(尤雨溪)',
-    num_comments: 5,
-    points: 4,
-    objectID: 2,
-  }, {
-    title: 'Angular',
-    url: 'https://angular.io',
-    author: 'Google',
-    num_comments: 6,
-    points: 2,
-    objectID: 3
-  }
-];
 
 const largeColumn = {
   width: '40%'
@@ -58,7 +25,6 @@ class App extends Component {
     super(props);
 
     this.state = {
-      list,
       result: null,
       searchTerm: DEFAULT_QUERY,
     };
@@ -92,8 +58,8 @@ class App extends Component {
    */
   onDismiss(id) {
     const isNotID = item => item.objectID !== id;
-    const updatedList = this.state.list.filter(isNotID);
-    this.setState( {list: updatedList} );
+    const updatedHits = this.state.result.hits.filter(isNotID);
+    this.setState({ ...this.state.result, hits: updatedHits });
   }
 
   /**
@@ -112,7 +78,7 @@ class App extends Component {
   }
 
   render() {
-    const { searchTerm, list, result } = this.state;
+    const { searchTerm, result } = this.state;
 
     if (!result) { return null; }
 
@@ -152,26 +118,6 @@ const Search = ({ searchTerm, onChange, children }) => {
   );
 }
 
-class Button extends Component {
-  render () {
-    const {
-      onClick,
-      className = '',
-      children,
-    } = this.props;
-
-    return (
-      <button
-        onClick={onClick}
-        className={className}
-        type="button"
-      >
-        {children}
-      </button>
-    )
-  }
-}
-
 const Table = ({ list, pattern, onDismiss }) => {
   return (
     <div className="table">
@@ -194,6 +140,26 @@ const Table = ({ list, pattern, onDismiss }) => {
       )}
     </div>
   )
+}
+
+class Button extends Component {
+  render () {
+    const {
+      onClick,
+      className = '',
+      children,
+    } = this.props;
+
+    return (
+      <button
+        onClick={onClick}
+        className={className}
+        type="button"
+      >
+        {children}
+      </button>
+    )
+  }
 }
 
 export default App;
