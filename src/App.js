@@ -1,6 +1,13 @@
 import React, { Component } from 'react';
 import './App.css';
 
+const DEFAULT_QUERY = 'redux';
+const PATH_BASE = 'https://hn.algolia.com/api/v1';
+const PATH_SEARCH = '/search';
+const PARAM_SEARCH = 'query=';
+
+const url = `${PATH_BASE}${PATH_SEARCH}${PARAM_SEARCH}${DEFAULT_QUERY}`;
+
 const list = [
   {
     title: 'React',
@@ -33,6 +40,10 @@ const list = [
   }
 ];
 
+const largeColumn = {
+  width: '40%'
+}
+
 /**
  * Higher order function - exists outside the component
  */
@@ -48,7 +59,8 @@ class App extends Component {
 
     this.state = {
       list,
-      searchTerm: ''
+      result: null,
+      searchTerm: DEFAULT_QUERY,
     };
 
     /**
@@ -56,8 +68,22 @@ class App extends Component {
      * if you use 'this' in a function, it doesn't know what this is
      * you have to bind the function to the class component
      */
+    this.setSearchTopStories = this.setSearchTopStories.bind(this);
     this.onDismiss = this.onDismiss.bind(this);
     this.onSearchChange = this.onSearchChange.bind(this);
+  }
+
+  setSearchTopStories(result) {
+    this.setState({ result });
+  }
+
+  componentDidMount() {
+    const { searchTerm } = this.state;
+
+    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
+      .then(response => response.json())
+      .then(result => this.setSearchTopStories(result))
+      .catch(error => error);
   }
 
   /**
@@ -86,7 +112,10 @@ class App extends Component {
   }
 
   render() {
-    const { searchTerm, list } = this.state;
+    const { searchTerm, list, result } = this.state;
+
+    if (!result) { return null; }
+
     return (
       <div className="page">
         <div className="interactions">
@@ -99,7 +128,7 @@ class App extends Component {
           </Search>
         </div>
         <Table
-          list={list}
+          list={result.hits}
           pattern={searchTerm}
           onDismiss={this.onDismiss}
         />
@@ -148,7 +177,7 @@ const Table = ({ list, pattern, onDismiss }) => {
     <div className="table">
       {list.filter(isSearched(pattern)).map(item =>
         <div key={item.objectID} className="table-row">
-          <span style={{width:"40%"}}>
+          <span style={largeColumn}>
             <a href={item.url}>{item.title}</a>
           </span>&nbsp;
           <span style={{width:"30%"}}>{item.author}</span>&nbsp;
@@ -156,7 +185,7 @@ const Table = ({ list, pattern, onDismiss }) => {
           <span style={{width:"10%"}}>{item.points}</span>&nbsp;
           <span style={{width:"10%"}}>
             <Button 
-              onClick={() => onDismiss(item.objectID)}
+              onClick={(item) => onDismiss(item.objectID)}
               className="button-inline">
               Dismiss
             </Button>
