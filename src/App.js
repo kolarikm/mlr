@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
 
-const DEFAULT_QUERY = 'redux';
 const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
@@ -26,7 +25,7 @@ class App extends Component {
 
     this.state = {
       result: null,
-      searchTerm: DEFAULT_QUERY,
+      searchTerm: '',
     };
 
     /**
@@ -35,21 +34,34 @@ class App extends Component {
      * you have to bind the function to the class component
      */
     this.setSearchTopStories = this.setSearchTopStories.bind(this);
+    this.fetchSearchTopStores = this.fetchSearchTopStores.bind(this);
     this.onDismiss = this.onDismiss.bind(this);
+    this.onSearchSubmit = this.onSearchSubmit.bind(this);
     this.onSearchChange = this.onSearchChange.bind(this);
   }
 
   setSearchTopStories(result) {
+    console.log(result);
     this.setState({ result });
   }
 
-  componentDidMount() {
-    const { searchTerm } = this.state;
-
+  fetchSearchTopStores(searchTerm) {
     fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
       .then(response => response.json())
       .then(result => this.setSearchTopStories(result))
       .catch(error => error);
+  }
+
+  componentDidMount() {
+    const { searchTerm } = this.state;
+    this.fetchSearchTopStores(searchTerm);
+  }
+
+  onSearchSubmit(event) {
+    const { searchTerm } = this.state;
+    this.fetchSearchTopStores(searchTerm);
+    console.log(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`);
+    event.preventDefault();
   }
 
   /**
@@ -94,15 +106,17 @@ class App extends Component {
           <Search 
             value={searchTerm}
             onChange={this.onSearchChange}
+            onSubmit={this.onSearchSubmit}
           >
             Search&nbsp;
           </Search>
         </div>
-        <Table
+        { result
+        ? <Table
           list={result.hits}
-          pattern={searchTerm}
           onDismiss={this.onDismiss}
         />
+        : null }
       </div>
     )
   }
@@ -110,23 +124,26 @@ class App extends Component {
 
 // Functional stateless component
 // Doesn't alter state or use lifecycle therefore doesn't need to extend component
-const Search = ({ searchTerm, onChange, children }) => {
+const Search = ({ value, onChange, onSubmit, children }) => {
   return (
-    <form>
-      {children} <input
+    <form onSubmit={onSubmit}>
+      <input
         type="text"
-        value={searchTerm}
+        value={value}
         onChange={onChange}
+        onSubmit={onSubmit}
       />
-      <br /><br />
+      <button type="submit">
+        {children}
+      </button>
     </form>
   );
 }
 
-const Table = ({ list, pattern, onDismiss }) => {
+const Table = ({ list, onDismiss }) => {
   return (
     <div className="table">
-      {list.filter(isSearched(pattern)).map(item =>
+      {list.map(item =>
         <div key={item.objectID} className="table-row">
           <span style={largeColumn}>
             <a href={item.url}>{item.title}</a>
