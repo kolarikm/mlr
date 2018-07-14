@@ -5,19 +5,19 @@ const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
 
-
+// Styles can be defined outside of the 'html' and used as such
 const largeColumn = {
   width: '40%'
 }
 
 /**
  * Higher order function - exists outside the component
- */
 function isSearched(searchTerm) {
   return function(item) {
     return item.title.toLowerCase().includes(searchTerm.toLowerCase());
   }
 }
+*/
 
 class App extends Component {
   constructor(props) {
@@ -41,7 +41,6 @@ class App extends Component {
   }
 
   setSearchTopStories(result) {
-    console.log(result);
     this.setState({ result });
   }
 
@@ -60,7 +59,6 @@ class App extends Component {
   onSearchSubmit(event) {
     const { searchTerm } = this.state;
     this.fetchSearchTopStores(searchTerm);
-    console.log(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`);
     event.preventDefault();
   }
 
