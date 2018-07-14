@@ -59,7 +59,12 @@ class App extends Component {
   onDismiss(id) {
     const isNotID = item => item.objectID !== id;
     const updatedHits = this.state.result.hits.filter(isNotID);
-    this.setState({ ...this.state.result, hits: updatedHits });
+    this.setState({
+      result: {
+        ...this.state.result,
+        hits: updatedHits
+      }
+    });
   }
 
   /**
@@ -131,7 +136,7 @@ const Table = ({ list, pattern, onDismiss }) => {
           <span style={{width:"10%"}}>{item.points}</span>&nbsp;
           <span style={{width:"10%"}}>
             <Button 
-              onClick={(item) => onDismiss(item.objectID)}
+              onClick={() => onDismiss(item.objectID)}
               className="button-inline">
               Dismiss
             </Button>
