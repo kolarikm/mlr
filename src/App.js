@@ -1,9 +1,13 @@
 import React, { Component } from 'react';
 import './App.css';
 
+const DEFAULT_HPP = 50;
+
 const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
+const PARAM_PAGE = 'page=';
+const PARAM_HPP = 'hitsPerPage=';
 
 // Styles can be defined outside of the 'html' and used as such
 const largeColumn = {
@@ -24,7 +28,8 @@ class App extends Component {
     super(props);
 
     this.state = {
-      result: null,
+      results: null,
+      searchKey: '',
       searchTerm: '',
     };
 
@@ -33,6 +38,7 @@ class App extends Component {
      * if you use 'this' in a function, it doesn't know what this is
      * you have to bind the function to the class component
      */
+    this.needsToSearchTopStores = this.needsToSearchTopStores.bind(this);
     this.setSearchTopStories = this.setSearchTopStories.bind(this);
     this.fetchSearchTopStores = this.fetchSearchTopStores.bind(this);
     this.onDismiss = this.onDismiss.bind(this);
@@ -40,12 +46,33 @@ class App extends Component {
     this.onSearchChange = this.onSearchChange.bind(this);
   }
 
-  setSearchTopStories(result) {
-    this.setState({ result });
+  needsToSearchTopStores(searchTerm) {
+    return !this.state.results[searchTerm];
   }
 
-  fetchSearchTopStores(searchTerm) {
-    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
+  setSearchTopStories(result) {
+    const { hits, page } = result;
+    const { searchKey, results } = this.state;
+    
+    const oldHits = results && results[searchKey]
+      ? results[searchKey].hits
+      : [];
+
+    const updatedHits = [
+      ...oldHits,
+      ...hits
+    ];
+
+    this.setState({
+      results: {
+        ...results,
+        [searchKey] : { hits: updatedHits, page }
+      }
+    });
+  }
+
+  fetchSearchTopStores(searchTerm, page = 0) {
+    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
       .then(response => response.json())
       .then(result => this.setSearchTopStories(result))
       .catch(error => error);
@@ -53,12 +80,18 @@ class App extends Component {
 
   componentDidMount() {
     const { searchTerm } = this.state;
+    this.setState({ searchKey: searchTerm });
     this.fetchSearchTopStores(searchTerm);
   }
 
   onSearchSubmit(event) {
     const { searchTerm } = this.state;
-    this.fetchSearchTopStores(searchTerm);
+    this.setState({ searchKey: searchTerm });
+    
+    if (this.needsToSearchTopStores(searchTerm)) {
+      this.fetchSearchTopStores(searchTerm);
+    }
+
     event.preventDefault();
   }
 
@@ -67,12 +100,15 @@ class App extends Component {
    * updated list is defined by filtering the current state's list property by applying the isNotID function
    */
   onDismiss(id) {
+    const { searchKey, results } = this.state;
+    const { hits, page } = results[searchKey];
+
     const isNotID = item => item.objectID !== id;
-    const updatedHits = this.state.result.hits.filter(isNotID);
+    const updatedHits = hits.filter(isNotID);
     this.setState({
-      result: {
-        ...this.state.result,
-        hits: updatedHits
+      results: {
+        ...results,
+        [searchKey] : { hits: updatedHits, page }
       }
     });
   }
@@ -93,9 +129,25 @@ class App extends Component {
   }
 
   render() {
-    const { searchTerm, result } = this.state;
+    const {
+      searchTerm,
+      results,
+      searchKey
+    } = this.state;
 
-    if (!result) { return null; }
+    const page = (
+      results &&
+      results[searchKey] &&
+      results[searchKey].page
+    ) || 0;
+
+    const list = (
+      results &&
+      results[searchKey] &&
+      results[searchKey].hits
+    ) || [];
+
+    if (!results) { return null; }
 
     return (
       <div className="page">
@@ -109,12 +161,17 @@ class App extends Component {
             Search&nbsp;
           </Search>
         </div>
-        { result
+        { results
         ? <Table
-          list={result.hits}
+          list={list}
           onDismiss={this.onDismiss}
         />
         : null }
+        <div className="interactions">
+          <Button onClick={() => this.fetchSearchTopStores(searchKey, page + 1)}>
+            More
+          </Button>
+        </div>
       </div>
     )
   }
